@@ -6,7 +6,7 @@ from mc_reader import MCReader
 
 def initialize_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mcfile',
+    parser.add_argument('--mcpath',
                         type=str,
                         help='path to mcfile to be used'
                        )
@@ -57,4 +57,4 @@ def main(mcpath, fluxtype, options, skip, savedir):
 
 if __name__=='__main__':
     args=initialize_args()
-    main(args.mcfile, args.fluxtype, args.options, args.skip, args.savedir)
+    main(args.mcpath, args.fluxtype, args.options, args.skip, args.savedir)

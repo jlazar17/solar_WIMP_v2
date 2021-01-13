@@ -1,17 +1,16 @@
 import numpy as np
 
-from base_mc_fluxmaker import BaseMCFluxmaker
-from controls import datadir
+from base_mc_fluxmaker import BaseMCFluxMaker
+from mc_reader import MCReader
+from controls import datadir, units
 
 class SignalMCFluxMaker(BaseMCFluxMaker):
 
     def _make_initial_data(self):
-        pg       = PathGen(self.mcpath)
         fluxfile = np.load('%s/charon_fluxes/%s_1AU_BRW.npy' % (datadir, self.fluxtype))
             
         czens    = np.linspace(-1, 1, 150)
         energies = fluxfile['Energy']
-        print(energies)
 
         initial_flux = np.zeros((len(czens), len(energies), 2, 3), dtype=float)
         for ic in range(len(czens)):

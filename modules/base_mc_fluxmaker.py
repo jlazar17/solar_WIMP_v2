@@ -1,10 +1,15 @@
+import numpy as np
+
+import nuSQUIDSpy as nsq
+from mc_reader import MCReader
+from controls import units
+
 class BaseMCFluxMaker:
 
     def __init__(self, mcpath, fluxtype):
         self.mcpath   = mcpath
         self.fluxtype = fluxtype
         self.mcdata   = self.read_mc()
-        self.pg       = PathGen(self.mcpath)
         self.mcflux   = None
         self.nsq_atm  = None
 

@@ -5,11 +5,12 @@ from controls import dist_calc_params
 
 class BaseDistMaker():
 
-    def __init__(self, mc, flux, bins):
+    def __init__(self, mc, flux, bins, fluxtype):
 
         self.mc         = mc
         self.flux       = flux
         self.bins       = bins
+        self.fluxtype   = fluxtype
         self.gamma_hist = None
         #self._seed      = abs(hash(self.mc.path)) % (2**32)
 

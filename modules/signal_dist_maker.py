@@ -6,9 +6,9 @@ from controls import dist_calc_params
 
 class SignalDistMaker(BaseDistMaker):
 
-    def __init__(self, mc, flux, bins, mass):
-        self.mass = mass
-        BaseDistMaker.__init__(self, mc, flux, bins)
+    def __init__(self, mc, flux, bins, fluxtype):
+        BaseDistMaker.__init__(self, mc, flux, fluxtype)
+        self.mass = int(self.fluxtype.split('-')[1][1:])
 
     def make_hist(self, rad, zen, az):
         solar_solid_angle = 2*np.pi*(1-np.cos(dist_calc_params['r_sun']/rad))

@@ -33,23 +33,29 @@ def initialize_args():
 def main(mcpath, fluxtype, options, skip, savedir):
     slc = slice(None, None, skip)
     mc  = MCReader(mcpath, options=options, slc=slc)
-    print('%s/%s_%s' % (savedir, fluxtype, mc.fname))
-    print('%s/mc_dn_dz/%s_%s' % (datadir, fluxtype, mc.fname))
-    flux = np.load('%s/mc_dn_dz/%s_%s.npy' % (datadir, fluxtype, mc.fname))[slc]
+
     if 'oscNext' in mcpath:
         bins = [dist_calc_params['cdtheta'], dist_calc_params['ee'], dist_calc_params['ptrackk']]
     else:
         bins = [dist_calc_params['cdtheta'], dist_calc_params['ee']]
+
     if fluxtype=='conv-numu':
-        from convnumu_dist_maker import ConvNuMuDistMaker
-        gamma = ConvNuMuDistMaker(mc, flux, bins)
+        flux = np.load('%s/mc_dn_dz/%s_%s.npy' % (datadir, fluxtype, mc.fname))[slc]
+        from bg_dist_maker import BGDistMaker
+        gamma = BGDistMaker(mc, flux, bins, fluxtype)
+    elif fluxtype=='muon':
+        flux = 1
+        from bg_dist_maker import BGDistMaker
+        gamma = BGDistMaker(mc, flux, bins, fluxtype)
     elif fluxtype=='solar-atm':
+        flux = np.load('%s/mc_dn_dz/%s_%s.npy' % (datadir, fluxtype, mc.fname))[slc]
         from solaratm_dist_maker import SolarAtmDistMaker
-        gamma = SolarAtmDistMaker(mc, flux, bins)
+        gamma = SolarAtmDistMaker(mc, flux, bins, fluxtype)
     else:
+        flux = np.load('%s/mc_dn_dz/%s_%s.npy' % (datadir, fluxtype, mc.fname))[slc]
         from signal_dist_maker import SignalDistMaker
-        mass = int(fluxtype.split('-')[1][1:])
-        gamma = SignalDistMaker(mc, flux, bins, mass)
+        gamma = SignalDistMaker(mc, flux, bins, fluxtype)
+
     gamma.do_calc()
     h = gamma.gamma_hist*skip
     np.save('%s/%s_%s' % (savedir, fluxtype, mc.fname), h)

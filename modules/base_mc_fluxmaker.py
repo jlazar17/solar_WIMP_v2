@@ -6,18 +6,17 @@ from controls import units
 
 class BaseMCFluxMaker:
 
-    def __init__(self, mcpath, fluxtype):
-        self.mcpath   = mcpath
+    def __init__(self, mc, fluxtype):
+        self.mc   = mc
         self.fluxtype = fluxtype
         self.mcdata   = self.read_mc()
         self.mcflux   = None
         self.nsq_atm  = None
 
     def read_mc(self):
-        mcreader = MCReader(self.mcpath)
-        mcdata = np.array(zip(mcreader.nu_e,
-                              np.cos(mcreader.nu_zen),
-                              mcreader.ptype
+        mcdata = np.array(zip(self.mc.nu_e,
+                              np.cos(self.mc.nu_zen),
+                              self.mc.ptype
                              ),
                           dtype=[('NuEnergy', float), 
                                  ('CosNuZenith', float), 
@@ -37,7 +36,7 @@ class BaseMCFluxMaker:
         
         self.nsq_atm.Set_rel_error(1.0e-15)
         self.nsq_atm.Set_abs_error(1.0e-15)
-        if 'SterileNeutrino' in self.mcpath:
+        if self.mc.event_selection=='MEOWS':
             self.nsq_atm.EvolveState()
 
     def get_flux(self, cz, e, ptype):

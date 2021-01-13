@@ -1,4 +1,5 @@
 import numpy as np
+from mc_reader import MCReader
 
 import sys
 sys.path.append('/data/user/jlazar/solar_WIMP_v2/modules/')
@@ -32,12 +33,12 @@ def create_mc_fluxmaker(mcpath, fluxtype):
     return fluxmaker
 
 def main(mcpath, fluxtype):
-    fluxmaker = create_mc_fluxmaker(mcpath, fluxtype)
+    mc = MCReader(mcpath)
+    fluxmaker = create_mc_fluxmaker(mc, fluxtype)
     fluxmaker.initialize_nuSQuIDS()
     fluxmaker.interp_mc()
     
-    mcfname = mcpath.split('/')[-1].split('.')[0]
-    np.save('%s/mc_dn_dz/%s_%s' % (datadir, fluxtype, mcfname), fluxmaker.mcflux)
+    np.save('%s/mc_dn_dz/%s_%s' % (datadir, fluxtype, mc.fname), fluxmaker.mcflux)
 
 if __name__=='__main__':
     args      = initialize_args()

@@ -9,6 +9,20 @@ conv_numu_params = dict(czz=np.linspace(-1, 1, 150),
                         ee=np.logspace(0, 6, 525),
                        )
 
+oscNext_nfiles = dict(nue_cc=602.0,
+                      nue_nc=602.0,
+                      nuebar_cc=602.0,
+                      nuebar_nc=602.0,
+                      numu_cc=1518.0,
+                      numu_nc=1518.0,
+                      numubar_cc=1518.0,
+                      numubar_nc=1518.0,
+                      nutau_cc=334.0,
+                      nutau_nc=334.0,
+                      nutaubar_cc=334.0,
+                      nutaubar_nc=334.0,
+                     )
+
 ############################### PARAMETERS FOR DISTRIBUTION CALCS #################################
 start = 2455349.5
 stop  = 2456810.5 # 4 years
@@ -22,7 +36,7 @@ dist_calc_params = dict(cdtheta=np.linspace(-1, 1, 300),
                        )
 
 ######################## PARAMETERS FOR GENERATING THE SIGNAL FROM CHARON #########################
-# osc params from http://www.nu-fit.org/?q=node/228
+# osc params from http=//www.nu-fit.org/?q=node/228
 charon_params = dict(theta_13=33.44,
                      theta_12=49.0,
                      theta_23=8.57,

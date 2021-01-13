@@ -2,6 +2,8 @@ import numpy as np
 import h5py
 from os import path
 
+from controls import oscNext_nfiles 
+
 
 class MCReader():
 
@@ -26,7 +28,7 @@ class MCReader():
     def set_event_selection(self):
         if 'hmniederhausen/' in self.path:
             self.event_selection = 'intracks'
-        elif 'oscNext' in self.path:
+        elif ('oscNext' in self.path):
             self.event_selection = 'oscNext'
         else:
             print('Event selection not recognized')
@@ -52,6 +54,7 @@ class MCReader():
             self.ptype     = []
             self.trackprob = []
             self.oneweight = []
+            self.rweight   = []
             for key in self.mcf.keys():
                 self.nu_e      = np.append(self.nu_e, self.mcf[key]['MCInIcePrimary.energy'][()])
                 self.nu_az     = np.append(self.nu_az, self.mcf[key]['MCInIcePrimary.dir.azimuth'][()])
@@ -61,7 +64,8 @@ class MCReader():
                 self.reco_zen  = np.append(self.reco_zen, np.arccos(self.mcf[key]['L7_reconstructed_coszen'][()]))
                 self.ptype     = np.append(self.ptype, self.mcf[key]['MCInIcePrimary.pdg_encoding'][()])
                 self.trackprob = np.append(self.trackprob, self.mcf[key]['L7_PIDClassifier_FullSky_ProbTrack'][()])
-                self.oneweight = np.append(self.oneweight, self.mcf[key]['I3MCWeightDict.OneWeight'][()] / (self.mcf[key]['I3MCWeightDict.NEvents'][()] * self.mcf[key]['I3MCWeightDict.gen_ratio'][()]))
+                self.oneweight = np.append(self.oneweight, self.mcf[key]['I3MCWeightDict.OneWeight'][()] / (self.mcf[key]['I3MCWeightDict.NEvents'][()] * self.mcf[key]['I3MCWeightDict.gen_ratio'][()] * oscNext_nfiles[key]))
+                self.rweight   = np.append(self.rweight, self.mcf[key]['ReferenceWeight'][()])
             self.nu_e      = self.nu_e[self.slc]
             self.nu_az     = self.nu_az[self.slc] 
             self.nu_zen    = self.nu_zen[self.slc] 
@@ -71,6 +75,7 @@ class MCReader():
             self.ptype     = self.ptype[self.slc] 
             self.trackprob = self.trackprob[self.slc]
             self.oneweight = self.oneweight[self.slc]
+            self.rweight   = self.rweight[self.slc]
 
 if __name__=='__main__':
     from  sys import argv as args

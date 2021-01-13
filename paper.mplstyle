@@ -1,7 +1,7 @@
 figure.figsize   : 5, 3   # figure size in inches
 savefig.dpi      : 600      # figure dots per inch
 savefig.bbox     : tight
-font.size: 14
+font.size: 20
 font.family: serif
 font.serif: Computer Modern, Latin Modern Roman, Bitstream Vera Serif
 text.usetex: True
@@ -11,8 +11,8 @@ axes.prop_cycle: cycler('color', ['29A2C6','FF6D31','73B66B','9467BD','FFCB18', 
 image.cmap    : plasma
 lines.linewidth: 2
 patch.linewidth: 2
-xtick.labelsize: 14
-ytick.labelsize: 14
+xtick.labelsize: 20
+ytick.labelsize: 20
 xtick.direction: in
 ytick.direction: in
 xtick.major.pad: 7
@@ -28,4 +28,4 @@ xtick.minor.width: 2
 ytick.major.width: 2
 ytick.minor.width: 2
 legend.frameon: True
-legend.fontsize: 12
+legend.fontsize: 24

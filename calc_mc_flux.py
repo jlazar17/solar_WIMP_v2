@@ -1,3 +1,5 @@
+import numpy as np
+
 import sys
 sys.path.append('/data/user/jlazar/solar_WIMP_v2/modules/')
 
@@ -35,7 +37,7 @@ def main(mcpath, fluxtype):
     fluxmaker.interp_mc()
     
     mcfname = mcpath.split('/')[-1].split('.')[0]
-    np.save('%s/mc_dn_dz/%s_%s' % (datadir, fluxname, mcfname), fluxmaker.mcflux)
+    np.save('%s/mc_dn_dz/%s_%s' % (datadir, fluxtype, mcfname), fluxmaker.mcflux)
 
 if __name__=='__main__':
     args      = initialize_args()

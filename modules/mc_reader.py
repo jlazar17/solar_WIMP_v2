@@ -7,7 +7,7 @@ class MCReader():
 
     def __init__(self, path, slc=slice(None), options='00'):
         self.path      = path
-        self.fname     = path.split('/')[-1].split('.')[0]
+        self.fname     = '.'.join(path.split('/')[-1].split('.')[:-1])
         self._rescale  = int(options[0])
         self._scramble = int(options[1])
         self.slc       = slc

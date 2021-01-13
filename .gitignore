@@ -1,2 +1,3 @@
 *.pyc
 *.npy
+notebooks/.ipynb_checkpoints/

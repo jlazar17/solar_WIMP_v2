@@ -1,15 +1,18 @@
 import numpy as np
 
-from base_mc_fluxmaker import BaseMCFluxmaker
-from controls import datadir
+from mc_reader import MCReader
+from base_mc_fluxmaker import BaseMCFluxMaker
+from controls import datadir, units
 
 class SolarAtmMCFluxMaker(BaseMCFluxMaker):
     
     def _make_initial_data(self):
-        pp_HG_nu    = np.genfromtxt('%s/SIBYLL2.3_pp_HillasGaisser_H4a_nu.txt' % datadir)
-        pp_HG_nubar = np.genfromtxt('%s/SIBYLL2.3_pp_HillasGaisser_H4a_nubar.txt' % datadir)
+        pp_HG_nu    = np.genfromtxt('%s/solar_atm/PostPropagation/SIBYLL2.3_pp_HillasGaisser_H4a_nu.txt' % datadir)
+        pp_HG_nubar = np.genfromtxt('%s/solar_atm/PostPropagation/SIBYLL2.3_pp_HillasGaisser_H4a_nubar.txt' % datadir)
         czens       = np.linspace(-1, 1, 150)
         energies    = pp_HG_nu[:,0]
+        global min_e
+        min_e = np.min(energies)
         initial_flux = np.zeros((len(czens), len(energies), 2, 3))
 
         for ic in range(len(czens)):
@@ -24,14 +27,20 @@ class SolarAtmMCFluxMaker(BaseMCFluxMaker):
         return czens, energies, initial_flux
 
     def get_flux(self, cz, e, ptype):
-        if e>1e5:
+        if (e>1e5 or e<min_e):
             return 0.0
-        elif cz>0.2:
-            return 0.0
+        elif ptype==12:
+            return self.nsq_atm.EvalFlavor(0, cz, e*units.GeV, 0)
+        elif ptype==-12:
+            return self.nsq_atm.EvalFlavor(0, cz, e*units.GeV, 1)
         elif ptype==14:
             return self.nsq_atm.EvalFlavor(1, cz, e*units.GeV, 0)
         elif ptype==-14:
             return self.nsq_atm.EvalFlavor(1, cz, e*units.GeV, 1)
+        elif ptype==16:
+            return self.nsq_atm.EvalFlavor(2, cz, e*units.GeV, 0)
+        elif ptype==-16:
+            return self.nsq_atm.EvalFlavor(2, cz, e*units.GeV, 1)
         else:
             print('wrong ptype doggo')
             return 0

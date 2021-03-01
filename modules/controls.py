@@ -5,7 +5,8 @@ units = PhysicsConstants()
 
 datadir = '/data/user/jlazar/solar_WIMP_v2/data/'
 
-conv_numu_params = dict(czz=np.linspace(-1, 1, 150),
+conv_numu_params = dict(
+                        czz=np.linspace(-1, 1, 150),
                         ee=np.logspace(0, 6, 525),
                        )
 

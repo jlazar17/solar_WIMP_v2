@@ -7,11 +7,11 @@ class BaseDistMaker():
 
     def __init__(self, mc, flux, bins, fluxtype):
 
-        self.mc         = mc
-        self.flux       = flux
-        self.bins       = bins
-        self.fluxtype   = fluxtype
-        self.gamma_hist = None
+        self.mc          = mc
+        self.flux        = mc.flux
+        self.bins        = bins
+        self.fluxtype    = fluxtype
+        self.gamma_hist  = None
         #self._seed      = abs(hash(self.mc.path)) % (2**32)
 
     def make_hist(self):

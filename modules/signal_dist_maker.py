@@ -1,14 +1,17 @@
 import numpy as np
 
+from DM import DMAnnihilationJungmanSD
 from base_dist_maker import BaseDistMaker
 from helper_functions import opening_angle
 from controls import dist_calc_params
 
+
 class SignalDistMaker(BaseDistMaker):
 
     def __init__(self, mc, flux, bins, fluxtype):
-        BaseDistMaker.__init__(self, mc, flux, fluxtype)
+        BaseDistMaker.__init__(self, mc, flux, bins, fluxtype)
         self.mass = int(self.fluxtype.split('-')[1][1:])
+        self.rate = DMAnnihilationJungmanSD(self.mass, 1.0e-39) # Annihlation rate for xs=1 femtobarn
 
     def make_hist(self, rad, zen, az):
         solar_solid_angle = 2*np.pi*(1-np.cos(dist_calc_params['r_sun']/rad))
@@ -30,7 +33,9 @@ class SignalDistMaker(BaseDistMaker):
                      self.flux[m] *             \
                      self.mc.oneweight[m] *    \
                      (1. / solar_solid_angle) * \
-                     (1. / (4*np.pi*np.power(rad, 2))),
+                     (1. / (4*np.pi*np.power(rad, 2))) * \
+                     (1. / self.mass) * \
+                     self.rate,
                      0
                     )
 

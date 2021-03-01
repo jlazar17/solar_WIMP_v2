@@ -1,6 +1,10 @@
+#!/cvmfs/icecube.opensciencegrid.org/py2-v3/RHEL_7_x86_64/bin/python 
+
 import numpy as np
-import os
-import argparse
+import os, sys, argparse
+sys.path.append('/home/jlazar/programs/charon/local/lib/')
+sys.path.append('/data/user/jlazar/charon/charon/')
+sys.path.append('/data/user/jlazar/solar_WIMP_v2/modules/')
 
 import propa
 import charon

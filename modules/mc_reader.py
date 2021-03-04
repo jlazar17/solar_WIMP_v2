@@ -32,32 +32,46 @@ def check_same_len(mc_data):
 
 class MCReader(object):
 
-    def __init__(self, path=None, name=None, options='00', additional_data=None):
+    def __init__(self, path=None, name=None, options='00', additional_data=None, thin=None):
 
-        self.options = options
-        self.path    = path
+        self.options       = options
+        self.path          = path
+        self._current_mask = None 
+        self._thin         = thin
+
+        # Make sure there is some way to make data
         if path is None and additional_data is None:
             raise RuntimeError('Must specify either a path or data')
+        # Load data from path if specified
         elif path is not None:
             self.fname = mc_fname(path)
-            self.name = mc_name(path)
-            mc_data = load_core_data(self.name, path)
+            self.name  = mc_name(path)
+            mc_descs   = load_core_data(self.name, path)
         else:
             self.name = name
-            mc_data = []
+            mc_descs = []
         if additional_data is not None:
             if type(additional_data)==tuple:
-                mc_data.append(additional_data)
+                mc_descs.append(additional_data)
             else:
                 for data_desc in additional_data:
-                    mc_data.append(data_desc)
-        if not check_same_len(mc_data):
+                    mc_descs.append(data_desc)
+        if not check_same_len(mc_descs):
             raise RuntimeError('All data must be the same length')
-        arr = np.array([tup for tup in zip(*tuple([t[0] for t in mc_data]))],
-                       dtype=[(t[1], t[2]) for t in mc_data]
+        self._mc_descs = mc_descs
+        self._set_mc_data(mc_descs)
+        if thin is not None:
+            slc = slice(None, None, thin)
+            self._mc_data = self._mc_data[slc]
+        self.mc_data = self._mc_data
+
+    def _set_mc_data(self, mc_descs):
+        
+        arr = np.array(
+                       [tup for tup in zip(*tuple([t[0] for t in mc_descs]))],
+                       dtype=[(t[1], t[2]) for t in mc_descs]
                       )
         self._mc_data = arr.view(np.recarray)
-        self.mc_data  = self._mc_data
 
     def __len__(self):
         return len(self.mc_data)
@@ -67,16 +81,32 @@ class MCReader(object):
 
     def __add__(self, other):
         shared_dnames = list(set(self._mc_data.dtype.names) & set(other._mc_data.dtype.names))
-        data          = [(np.append(self._mc_data[name], other._mc_data[name]), name, dtype)
+        data          = [(np.append(self.mc_data[name], other.mc_data[name]), name, dtype)
                          for name, dtype in self._mc_data.dtype.descr
                          if name in shared_dnames
                         ]
         name = '%s-%s' % (self.name, other.name)
         return MCReader(additional_data=data, name=name)
+    
+    def add_data(self, new_data_desc):
+        if len(new_data_desc[0])!=len(self._mc_data):
+            raise ValueError('New data must have same length of whole MC set')
+        elif(new_data_desc[1] in [desc[1] for desc in self._mc_descs]):
+            raise ValueError('There is already a field with name %s' % new_data_desc[1])
+        self._mc_descs.append(new_data_desc)
+        self._set_mc_data(self._mc_descs)
+        self.mc_data = self._mc_data
+        if self._current_mask is not None:
+            self.mc_data = self._mc_data[self._current_mask]
+            
+
     def unmask(self):
-        self.mc_data = self._mc_data   
+        self.mc_data = self._mc_data
+        self._current_mask = None 
+
     def make_mask(self, cuts):
         return make_mask(self._mc_data, cuts)
 
     def apply_mask(self, mask):
-        self.mc_data = self._mc_data[mask]
+        self.mc_data       = self._mc_data[mask]
+        self._current_mask = mask

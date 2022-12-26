@@ -45,6 +45,7 @@ def core_ps_data(path):
     import numpy as np
     mcf  = np.load(path)
     # TODO find actual particle type information
+    np.random.seed(1)
     ptype = np.where(np.random.rand(len(mcf['trueE']))<0.4511734444723442, 14,-14)
     data = [(mcf['trueE'],              'true_e',    '<f8'),
             (mcf['trueDec']+np.pi/2,    'true_zen',  '<f8'),

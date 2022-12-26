@@ -1,9 +1,8 @@
 import numpy as np
 
-from physicsconstants import PhysicsConstants
-units = PhysicsConstants()
+#from physicsconstants import PhysicsConstants
+#units = PhysicsConstants()
 
-datadir = '/data/user/jlazar/solar_WIMP_v2/data/'
 
 conv_numu_params = dict(
                         czz=np.linspace(-1, 1, 150),
@@ -25,13 +24,15 @@ oscNext_nfiles = dict(nue_cc=602.0,
                      )
 
 ############################### PARAMETERS FOR DISTRIBUTION CALCS #################################
-start = 2455349.5
-stop  = 2456810.5 # 4 years
+start = 55349
+stop  = 56810 # 4 years to give average rate
 n     = 35000
-dist_calc_params = dict(cdtheta=np.linspace(-1, 1, 300),
+dist_calc_params = dict(
+                        cdtheta=np.linspace(0, np.pi, 360),
+                        #cdtheta=np.linspace(-1, 1, 300),
                         ee=np.logspace(0,6,61),
                         ptrackk=np.linspace(0,1,101),
-                        jds=np.linspace(start, stop, n), # roughly every hour
+                        mjds=np.linspace(start, stop, n), # roughly every hour
                         azimuths=np.random.rand(n)*np.pi*2,
                         r_sun=6.9e10, # cm
                        )

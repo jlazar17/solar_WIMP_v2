@@ -1,12 +1,14 @@
 import os
 import numpy as np
 import h5py as h5
+
+from tqdm import tqdm
 from typing import Iterable, Optional, Union
 from datetime import datetime
 
-from solar_atmospherics.solar_common import sun, compute_distribution
-from solar_atmospherics.solar_common.flux import EventFlux, SkyDistribution
-from solar_atmospherics.solar_common.event_reader import EventReader, Selection, DataType, event_reader_from_file
+from solar_common import sun, compute_distribution
+from solar_common.flux import EventFlux, SkyDistribution
+from solar_common.event_reader import EventReader, Selection, DataType, event_reader_from_file
 
 MJDMIN = 56_293 # Jan. 1 2013
 MJDMAX = 56_658.25 # Jan. 1 2014 + 0.25 days for stuff
@@ -17,8 +19,9 @@ def determine_selection(datafile: str) -> Selection:
     if datafile.endswith(".npy"):
         return Selection.POINTSOURCE
     # oscNext uses h5 files as labels them verbosely
-    elif datafile.endswith(".hdf5"):
+    elif datafile.endswith(".h5") and "oscnext" in datafile.lower():
         return Selection.OSCNEXT
+    raise ValueError(f"Could not determine selection from {datafile}")
 
 def get_event_flux(fluxfile: str, key: str) -> EventFlux:
     """Makes EventFlux object input h5 file name where fluxes are stored
@@ -132,7 +135,7 @@ def main(
 
 
     # Set the RNG seed
-    for key in keys:
+    for key in tqdm(keys):
         if eventsfile is None:
             events = get_events(fluxfile, key)
         if scramble:

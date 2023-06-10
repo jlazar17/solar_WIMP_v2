@@ -43,7 +43,7 @@ def main(mcfile: str, fluxfile: str, outfile: str, force :bool=False) -> None:
             h5f.create_dataset(desc, data=mcflux.flux)
         h5f[desc][:] = mcflux.flux
         h5f[desc].attrs["Distribution"] = mcflux.distribution.name
-        h5f[desc].attrs["MC File"] = mcfile
+        h5f[desc].attrs["MC File"] = os.path.abspath(mcfile)
 
 if __name__=="__main__":
     from argparse import ArgumentParser

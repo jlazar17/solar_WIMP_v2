@@ -144,6 +144,7 @@ def main(
         np.random.seed(seed)
         mjds = np.random.uniform(mjdmin, mjdmax, ndays)
         dist = compute_distribution(events, sun, flux=flux, mjds=mjds)
+        print(np.sum(dist))
         save_output(
             outfile,
             key, 

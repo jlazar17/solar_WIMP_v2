@@ -1,1 +1,0 @@
-../../solar_common/calc_distribution.py

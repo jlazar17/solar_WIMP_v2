@@ -1,10 +1,12 @@
 eval `/cvmfs/icecube.opensciencegrid.org/py3-v4.1.0/setup.sh`
 
 ############################# DIRECTORIES TO MODIFY ############################
+export CHANNEL=5
+export MASS=500
+export DATADIR=$PWD/data/
+export SCRIPTSDIR=$PWD/../scripts/
+export SUBMITDIR=$PWD/../submit/
 ################################################################################
-
-export PLOT_DIR=$BASE_DIR/plots/
-export DATA_DIR=$BASE_DIR/data/
 
 export LD_LIBRARY_PATH=$SROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$SROOT/lib64:$LD_LIBRARY_PATH

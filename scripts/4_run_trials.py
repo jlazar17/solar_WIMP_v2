@@ -31,12 +31,17 @@ def initialize_parser():
     parser = ArgumentParser()
     parser.add_argument(
         "--sigfile",
-        type=str,
+        nargs="+",
         required=True
     )
     parser.add_argument(
         "--bgfile",
-        type=str,
+        nargs="+",
+        required=True
+    )
+    parser.add_argument(
+        "--solar_bgfile",
+        nargs="+",
         required=True
     )
     parser.add_argument(
@@ -65,8 +70,13 @@ def initialize_parser():
     )
     parser.add_argument(
         "--key",
-        nargs="+",
+        type=str,
         dest="key"
+    )
+    parser.add_argument(
+        "--solar_atm_model",
+        type=str,
+        default="SIBYLL2.3_ppMRS_CombinedGHAndHG_H4a"
     )
     args = parser.parse_args()
     return args
@@ -80,115 +90,94 @@ def determine_selection(datafile: str) -> Selection:
         selection = Selection.OSCNEXT
     return selection
 
-#def run_trials(
-#    nominal_sig: np.ndarray,
-#    nominal_bg: np.ndarray,
-#    signal_norm: float,
-#    seed,
-#    n_realizations: int=10_000,
-#):
-#    if nominal_sig.shape!=nominal_bg.shape:
-#        raise ValueError("Signal and background shapes don't match")
-#    true_model = signal_norm * nominal_sig + nominal_bg
-#    realizations = np.zeros((n_realizations, ) + true_model.shape)
-#    np.random.seed(seed)
-#    for idx in range(n_realizations):
-#        realizations[idx, ...] = np.random.poisson(lam=true_model)
-#    # This line is dirt...
-#    #arr = realizations.reshape(-1, realizations.shape[0]).sum(axis=0)
-#    signal_results = []
-#    null_results = []
-#    deltas = []
-#    for idx in tqdm(range(n_realizations)):
-#        data = realizations[idx, ...]
-#        f_signal = lambda x: poisson_nllh(data, nominal_bg + np.exp(x) * nominal_sig)
-#        #~f_signal = lambda x: poisson_nllh(data, np.exp(x[0]) * background + np.exp(x[1]) * nominal_sig)
-#        sres = differential_evolution(f_signal, [(-10, 10)])
-#        signal_results.append(sres)
-#        #f_null = lambda x: poisson_nllh(data, np.exp(x) * background)
-#        #nres = differential_evolution(f_null, [(-2, 2)])
-#        #null_results.append(nres)
-#        delta_2llh = -2 * (
-#            poisson_nllh(data, nominal_bg + np.exp(sres.x) * nominal_sig) - poisson_nllh(data, nominal_background)
-#            #poisson_nllh(data, np.exp(sres.x[0]) * nominal_bg + np.exp(sres.x[1]) * nominal_sig) - \
-#            #~poisson_nllh(data, np.exp(nres.x) * nominal_bg)
-#        )
-#        deltas.append(delta_2llh)
-#    return signal_results, null_results, np.array(deltas)
+def bg_likelihood(x, data, nominal_atm_bg, nominal_solar_bg, masks):
+    nominal_sig = [np.zeros(d.shape) for d in nominal_atm_bg]
+    out = sig_likelihood([0, x[0], x[1]], data, nominal_sig, nominal_atm_bg, nominal_solar_bg, masks)
+    return out
+
+def sig_likelihood(
+    x: np.ndarray,
+    data: List[np.ndarray],
+    nominal_sig: List[np.ndarray],
+    nominal_atm_bg: List[np.ndarray],
+    nominal_solar_bg: List[np.ndarray],
+    masks: List[np.ndarray]
+):
+    out = []
+    for d, sig, bg, sbg, m in zip(data, nominal_sig, nominal_atm_bg, nominal_solar_bg, masks):
+        out.append(-poisson_loglikelihood(d[m], x[0] * sig[m] + x[1] * bg[m] + x[2] * sbg[m]))
+    return out
 
 def run_trials(
-    nominal_sig: np.ndarray,
-    nominal_bg: np.ndarray,
+    nominal_sig: List[np.ndarray],
+    nominal_atm_bg: List[np.ndarray],
+    nominal_solar_bg: List[np.ndarray],
     norm: float,
     nrealizations: int
 ) -> np.ndarray:
     """
     Function to run an input number of trials for an input signal normalization.
-    The true model is assumed to be `norm * nominal_sig + nominal_bg`, i.e.
+    The true model is assumed to be `norm * nominal_sig + nominal_atm_bg`, i.e.
     the true background normalization will always be one.
-
     params
     ______
     nominal_sig: array giving mean number of events for nominal signal model
-    nominal_bg: array giving the expected number of events for the nominal
-        background model
+    nominal_atm_bg: array giving the expected number of events for the nominal
+    background model
     norm: normalization by which to scale the nominal signal model
     nrealizations: number of pseudo experiments to do
 
     returns
     _______
     res: numpy array with shape (nrealizations, 4). The columns are the signal and
-        background normalizations for the signal fit, the background normalization
-        from the bg only fit, and 2 * (llh_{sig + bg} - llh_{bg})
+    background normalizations for the signal fit, the background normalization
+    from the bg only fit, and 2 * (llh_{sig + bg} - llh_{bg})
     """
-    mask = nominal_bg > 0
-    true_model = norm * nominal_sig + nominal_bg
-    res = np.empty((nrealizations, 4))
     
+    res = np.empty((nrealizations, 6))
+                                                                                                            
+    masks = [bg > 0 for bg in nominal_atm_bg]
+    true_model = [
+        norm * sig + bg + sbg for sig, bg, sbg in zip(nominal_sig, nominal_atm_bg, nominal_solar_bg)
+    ]
+
     for idx in tqdm(range(nrealizations)):
 
-        data = np.random.poisson(lam=true_model)
+        data = []
+        for model in true_model:
+            data.append(np.random.poisson(lam=model))
+                                                                                                                                                            
+        g = lambda x: np.sum([
+            x.sum() for x in bg_likelihood(x, data, nominal_atm_bg, nominal_solar_bg, masks)
+        ])
+        f = lambda x: np.sum([
+            x.sum() for x in sig_likelihood(x, data, nominal_sig, nominal_atm_bg, nominal_solar_bg, masks)
+        ])
+        fitg = minimize(g, [1, 1], bounds=[(0.99, 1.01), (0.0, 5)], tol=1e-20)
+            
+        fitf = minimize(f, [0.5, fitg.x[0], fitg.x[1]], bounds=[(0, 100), (0.99, 1.01), (0.0, 5)], tol=1e-20)
+        #fitg = minimize(g, [1, 1], bounds=[(0.99, 1.01), (0.)], tol=1e-20)
 
-        bg_likelihood = lambda x: -poisson_loglikelihood(data[mask], x * nominal_bg[mask])
-        g = lambda x: bg_likelihood(x).sum()
-        fitg = minimize(g, [1], bounds=[(0.99, 1.01)], tol=1e-20)
+        #fitf = minimize(f, [0.5, fitg.x[0]], bounds=[(0, 30), (0.99, 1.01)], tol=1e-20)
 
-        sig_likelihood = lambda x: -poisson_loglikelihood(data[mask], x[0] * nominal_sig[mask] + x[1] * nominal_bg[mask])
-        f = lambda x: sig_likelihood(x).sum()
-        fitf = minimize(f, [0.5, fitg.x[0]], bounds=[(0.0, max(10, norm+2)), (0.99, 1.01)], tol=1e-20)
-
-        delta = -2 * (sig_likelihood(fitf.x) - bg_likelihood(fitg.x)).sum()
-        res[idx, :2] = fitf.x
-        res[idx, 2] = fitg.x
-        res[idx, 3] = delta
+                                                                                                                                                                                                                                        
+        we = [
+            (x-y).sum() for x, y in zip(
+                sig_likelihood(fitf.x, data, nominal_sig, nominal_atm_bg, nominal_solar_bg, masks),
+                bg_likelihood(fitg.x, data, nominal_atm_bg, nominal_solar_bg, masks),
+            )
+        ]
+        delta = -2 * np.sum(we)
+        res[idx, 0] = fitf.x[0]
+        res[idx, 1] = fitf.x[1]
+        res[idx, 2] = fitf.x[2]
+        res[idx, 3] = fitg.x[0]
+        res[idx, 4] = fitg.x[1]
+        res[idx, 5] = delta
+        if idx % 100 ==99:
+            print(np.quantile(res[:idx, 0], [0.16, 0.5, 0.84]))
+            print(np.quantile(res[:idx, 5], [0.5, 0.9]))
     return res
-
-def get_fluxenames(sigfile: str) -> List[str]:
-    """
-    Utility file for finding all signal fluxes contained within
-    a signal file
-
-    params
-    ______
-    sigfile: path to signal file from which to extract fluxes
-
-    returns
-    _______
-    fluxnames: list of all flux prefixes
-    """
-    fluxnames = []
-    with h5.File(sigfile, "r") as h5f:
-        for k in h5f.keys():
-            fluxname = "_".join(k.split("_")[:-1])
-            if fluxname in fluxnames:
-                continue
-            fluxnames.append(fluxname)
-    return fluxnames
-
-#def save_minimization_res(res, pklfile, **kwargs) -> None:
-#    kwargs["res"] = res
-#    with open(pklfile, "wb") as pkl_f:
-#        pkl.dump(kwargs, pkl_f)
 
 def save_deltas(deltas, outfile, fluxname, **kwargs) -> None:
     n = 0
@@ -204,11 +193,13 @@ def save_deltas(deltas, outfile, fluxname, **kwargs) -> None:
 def main(
     sigfile: str,
     bgfile: str,
+    solar_bgfile: str,
     outfile: str,
     seed: int,
     norm: float,
     n: int,
-    fluxnames=None
+    fluxname: str,
+    solar_atm_model: str
 ):
     """
     Main function
@@ -223,24 +214,33 @@ def main(
     seed: seed for random number generation
     norm: normalization to scale nominal signal by
     n: number of realizations
-    fluxnames: list of flux names to use as nominal signal. If left as
+    fluxname: list of flux names to use as nominal signal. If left as
         `None`, the procedure will be done for all fluxes in `sigfile`
     """
     if not os.path.exists(outfile):
         with h5.File(outfile, "w") as _:
             pass
 
-    selection = determine_selection(bgfile)
+    nominal_atm_bg = []
+    for f in bgfile:
+        selection = determine_selection(f)
+        yearmaker = YEARMAKER_DICT[selection]
+        with h5.File(f, "r") as h5f:
+            nominal_atm_bg.append(prepare_data_distribution(h5f, yearmaker))
 
-    livetime = DELTA_T_DICT[selection]
-    yearmaker = YEARMAKER_DICT[selection]
+    nominal_sig = []
+    for f in sigfile:
+        selection = determine_selection(f)
+        livetime = DELTA_T_DICT[selection]
+        with h5.File(f, "r") as h5f:
+            nominal_sig.append(livetime * prepare_simulation_distribution(h5f, fluxname))
 
-    with h5.File(bgfile, "r") as h5f:
-        nominal_bg = prepare_data_distribution(h5f, yearmaker)
-    mask = nominal_bg > 0
-
-    if fluxnames is None:
-        fluxnames = get_fluxenames(sigfile)
+    nominal_solar_bg = []
+    for f in solar_bgfile:
+        selection = determine_selection(f)
+        livetime = DELTA_T_DICT[selection]
+        with h5.File(f, "r") as h5f:
+            nominal_solar_bg.append(livetime * prepare_simulation_distribution(h5f, solar_atm_model))
 
     meta_params = {
         "sigfile": sigfile,
@@ -250,15 +250,20 @@ def main(
         "n": n
     }
 
-    for fluxname in tqdm(fluxnames):
-        np.random.seed(seed)
-        with h5.File(sigfile, "r") as h5f:
-            nominal_sig = livetime * prepare_simulation_distribution(h5f, fluxname)
-        print(f"Expected number of events={norm * nominal_sig.sum()}")
-        res = run_trials(nominal_sig, nominal_bg, norm, n)
-        print(np.quantile(res[:, 3], [0.5, 0.9]))
-        save_deltas(res, outfile, fluxname, **meta_params)
+    np.random.seed(seed)
+    res = run_trials(nominal_sig, nominal_atm_bg, nominal_solar_bg, norm, n)
+    save_deltas(res, outfile, fluxname, **meta_params)
 
 if __name__=="__main__":
     args = initialize_parser()
-    main(args.sigfile, args.bgfile, args.outfile, args.seed, args.norm, args.n, fluxnames=args.key)
+    main(
+        args.sigfile,
+        args.bgfile,
+        args.solar_bgfile,
+        args.outfile,
+        args.seed,
+        args.norm,
+        args.n,
+        args.key,
+        args.solar_atm_model
+    )

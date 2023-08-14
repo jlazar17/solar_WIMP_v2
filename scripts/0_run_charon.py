@@ -3,6 +3,7 @@
 import numpy as np
 
 from charon.propa import NuFlux
+from charon.DM import DMAnnihilationJungmanSD
 
 qr_channel_dict = {5:"bb", 8:"WW", 11:"tautau"}
 SOLAR_SPHERE_SURFACE = 4 * np.pi * 1.495978707e13**2 * 1e-4 # m
@@ -18,6 +19,7 @@ CHARON_KWARGS = {
     "bins": 200,
     "Emin": 1.0,
     "interactions": True,
+    "logscale":  True
 }
 
 def initialize_args():
@@ -57,7 +59,7 @@ def main(channel: int, mass: float, outfile: str):
     outarr = np.empty(
         flux.shape + (7,)
     )
-    ref_rate = 1e22
+    ref_rate = DMAnnihilationJungmanSD(mass, 1e-40)
     outarr[:, 0] = flux["Energy"]
     # Sorry about this dividing thing...
     outarr[:, 1] = flux["nu_e"] / mass * ref_rate / SOLAR_SPHERE_SURFACE

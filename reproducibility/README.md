@@ -52,5 +52,16 @@ SEED=8; for FILE in `ls /data/ana/BSM/IC86_all_energy_solar_WIMP/data/oscNext_da
 
 `10_000` is ideal but once again, `1_000` should be good enough to reproduce the mostly reproduce the sensitivity.
 The additional factor of 10 just ensures that we fill out the tail of the distribution and that our TS curves are nice and smooth.
+This can be run from the command line, but since you will need to do this for a number of cross sections, I also provide a script for submitting jobs.
+This script has cross sections included so you will not need to set them durectly.
+
+```bash
+mkdir $LOGSDIR
+mkdir $LOGSDIR/error
+mkdir $LOGSDIR/output
+mkdir $LOGSDIR/submit
+mkdir $LOGSDIR/log
+python ${SUBMITDIRT}/run_trials/submit_run_trials.py --sigfile ${DATADIR}/IC86_pass2_MC_simulation_dist.h5 ${DATADIR}/oscNext_simulation_no_muon_simulation_dist.h5 --solar_bgfile ${DATADIR}/IC86_pass2_MC_simulation_dist.h5 ${DATADIR}/oscNext_simulation_no_muon_simulation_dist.h5 --bgfile $DATADIR/pointsource_scrambled_data.h5 $DATADIR/oscnext_scrambled_data.h5 -s 925 -n 10_000 --outfile ${DATADIR}/ps_oscnext_trials.h5 --prefix $LOGSDIR
+```
 
 # Compute the sensitivity

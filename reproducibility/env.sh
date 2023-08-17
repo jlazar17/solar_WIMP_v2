@@ -6,6 +6,7 @@ export MASS=500
 export DATADIR=$PWD/data/
 export SCRIPTSDIR=$PWD/../scripts/
 export SUBMITDIR=$PWD/../submit/
+export LOGSDIR=~/solar_WIMP_repro_logs/
 ################################################################################
 
 export LD_LIBRARY_PATH=$SROOT/lib:$LD_LIBRARY_PATH

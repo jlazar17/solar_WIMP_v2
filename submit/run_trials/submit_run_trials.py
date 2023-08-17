@@ -85,7 +85,11 @@ def initialize_parser():
         "--norms",
         nargs="+",
     )
-
+    parser.add_argument(
+        "--prefix",
+        type=str,
+        default="/home/jlazar/condor_logs/run_trials/"
+    )
     args = parser.parse_args()
     return args
 
@@ -95,11 +99,11 @@ norms = args.norms
 if norms is None:
     norms = np.append(NORMS_DICT[args.key], [0])
 
-path = "/home/jlazar/condor_logs/run_trials/"
-output = f"{path}/output/"
-log = f"{path}/log/"
-error = f"{path}/error/"
-submit = f"{path}/submit/"
+
+output = f"{args.prefix}/output/"
+log = f"{args.prefix}/log/"
+error = f"{args.prefix}/error/"
+submit = f"{args.prefix}/submit/"
 
 xlines = [
     "request_memory = (NumJobStarts is undefined) ? 2 * pow(2, 10) : 1024 * pow(2, NumJobStarts + 1)",

@@ -5,7 +5,14 @@ import numpy as np
 from charon.propa import NuFlux
 from charon.DM import DMAnnihilationJungmanSD
 
-qr_channel_dict = {5:"bb", 8:"WW", 11:"tautau"}
+qr_channel_dict = {
+    5:"bb",
+    8:"WW",
+    11:"tautau",
+    14:"numunumu",
+    12:"nuenue",
+    16:"nutaunutau"
+}
 SOLAR_SPHERE_SURFACE = 4 * np.pi * 1.495978707e13**2 * 1e-4 # m
 CHARON_KWARGS = {
     "theta_13": 33.44,
@@ -68,6 +75,7 @@ def main(channel: int, mass: float, outfile: str):
     outarr[:, 4] = flux["nu_mu_bar"] / mass * ref_rate / SOLAR_SPHERE_SURFACE
     outarr[:, 5] = flux["nu_tau"] / mass * ref_rate / SOLAR_SPHERE_SURFACE
     outarr[:, 6] = flux["nu_tau_bar"] / mass * ref_rate / SOLAR_SPHERE_SURFACE
+    print(outarr.sum(axis=0))
     np.savetxt(outfile, outarr)
 
 if __name__=="__main__":

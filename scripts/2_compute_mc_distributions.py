@@ -133,7 +133,6 @@ def main(
         selection = determine_selection(eventsfile)
         events = event_reader_from_file(eventsfile, selection, DataType.MC)
 
-
     # Set the RNG seed
     for key in tqdm(keys):
         if eventsfile is None:
@@ -157,6 +156,8 @@ def main(
             scramble=str(scramble)
         )
         seed += 1
+        del flux
+        del dist
 
 if __name__=="__main__":
     from argparse import ArgumentParser

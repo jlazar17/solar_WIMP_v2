@@ -35,8 +35,15 @@ NORMS_DICT = {
     "11-5000": np.logspace(0.0 - 1.0, 0.0 + 1.0, 21),
     "11-10000": np.logspace(0.5 - 1.0, 0.5 + 1.0, 21),
 
-    "14-500": np.logspace(-4, -2, 21),
-    "14-1000": np.logspace(-4.0, -2.0, 21),
+    "14-20": np.logspace(np.log10(0.05) - 1, np.log10(0.05) + 1, 21),
+    "14-50": np.logspace(np.log10(0.02) - 1, np.log10(0.02) + 1, 21),
+    "14-100": np.logspace(np.log10(0.02) - 1, np.log10(0.02) + 1, 21),
+    "14-200": np.logspace(np.log10(0.02) - 1, np.log10(0.02) + 1, 21),
+    "14-500": np.logspace(np.log10(0.005) - 1, np.log10(0.005) + 1, 21),
+    "14-1000": np.logspace(np.log10(0.002) - 1, np.log10(0.002) + 1, 21),
+    #"14-2000": np.logspace(np.log10(0.005) - 1, np.log10(0.005) + 1, 21),
+    "14-5000": np.logspace(-1.0, 1., 21),
+    "14-10000": np.logspace(np.log10(5) - 1, np.log10(5) + 1, 21),
 }
 
 def initialize_parser():

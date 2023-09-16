@@ -17,8 +17,8 @@ from solar_common.utils import (
 from solar_common.sensitivity.poisson_nllh import poisson_loglikelihood
 
 DELTA_T_DICT = {
-    Selection.OSCNEXT: 11 * 10**7.5,
-    Selection.POINTSOURCE: 11 * 10**7.5,
+    Selection.OSCNEXT: 345824815.4500002,
+    Selection.POINTSOURCE: 328673673.7984125, # Compute by summing livetime from /data/ana/analyses/northern_tracks/version-005-p01/GRL/IC86_{YEAR}_exp.npy
 }
 
 YEARMAKER_DICT = {
@@ -230,6 +230,7 @@ def main(
 
     nominal_sig = []
     for f in sigfile:
+        print(f)
         selection = determine_selection(f)
         livetime = DELTA_T_DICT[selection]
         with h5.File(f, "r") as h5f:

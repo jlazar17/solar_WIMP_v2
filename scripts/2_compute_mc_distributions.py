@@ -136,6 +136,10 @@ def main(
     # Set the RNG seed
     for key in tqdm(keys):
         if eventsfile is None:
+            try:
+                del events
+            except NameError:
+                pass
             events = get_events(fluxfile, key)
         if scramble:
             events.scramble_azimuth(seed=seed)

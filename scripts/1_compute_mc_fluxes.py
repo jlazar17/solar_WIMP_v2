@@ -25,20 +25,21 @@ def main(mcfile: str, fluxfile: str, outfile: str, force :bool=False) -> None:
     outfile: h5file to put all the fluxes in
     force: If True, all fluxes will be recaluclated even if extant
     """
-    selection = determine_selection(mcfile)
-    events = event_reader_from_file(mcfile, selection, DataType.MC)
     
-    openchar = "w"
-    if os.path.exists(outfile):
-        openchar = "r+"
+    if not os.path.exists(outfile):
+        with h5.File(outfile, "w") as _:
+            pass
 
-    with h5.File(outfile, openchar) as h5f:
-        
-        desc = fluxfile.split("/")[-1].replace(".txt", "")
+    desc = fluxfile.split("/")[-1].replace(".txt", "")
+    with h5.File(outfile, "r") as h5f:
         if desc in h5f.keys() and not force:
             return
-        flux = SolarAtmSurfaceFlux(fluxfile)
-        mcflux = flux.to_event_flux(events)
+
+    selection = determine_selection(mcfile)
+    events = event_reader_from_file(mcfile, selection, DataType.MC)
+    flux = SolarAtmSurfaceFlux(fluxfile)
+    mcflux = flux.to_event_flux(events)
+    with h5.File(outfile, "r+") as h5f:
         if desc not in h5f.keys():
             h5f.create_dataset(desc, data=mcflux.flux)
         h5f[desc][:] = mcflux.flux

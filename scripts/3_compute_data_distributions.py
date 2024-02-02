@@ -81,7 +81,8 @@ def main(
     for _ in tqdm(range(niter)):
         if scramble:
             events.scramble_azimuth(seed=seed)
-        dist = compute_distribution(events, sun) 
+        dist = compute_distribution(events, sun)
+        print(dist.sum(axis=-1).sum(axis=-1))
         save_output(
             outfile,
             eventsfile.split("/")[-1].split(".")[0], 
